@@ -126,16 +126,36 @@ class JarvisAssistant:
 
     def weather(self, city):
         """
-        Return weather
+        Return weather with caching for better performance
         :param city: Any city of this world
         :return: weather info as string if True, or False
         """
         try:
+            # Use cached response for better performance
+            cache_key = f"weather_{city}"
+            cached_result = self.performance_optimizer.cache.get(cache_key)
+            
+            if cached_result:
+                print("📋 Using cached weather data")
+                return cached_result
+            
+            # Fetch fresh weather data
             res = weather.fetch_weather(city)
+            
+            if res:
+                # Cache the result
+                self.performance_optimizer.cache.set(cache_key, res)
+                
+                # Translate if needed
+                if self.language_support.current_language != 'en':
+                    res = self.language_support.translate_text(res, self.language_support.current_language)
+                
+                return res
+            else:
+                return self.error_handler.handle_error('api_error')
+                
         except Exception as e:
-            print(e)
-            res = False
-        return res
+            return self.error_handler.handle_error('network_error', e)
 
     def tell_me(self, topic):
         """
