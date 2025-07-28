@@ -1,8 +1,8 @@
 import speech_recognition as sr
-import pyttsx3
 import asyncio
 import threading
 import time
+import os
 from datetime import datetime
 
 from Jarvis.features import date_time
@@ -23,10 +23,28 @@ from Jarvis.features.language_support import LanguageSupport
 from Jarvis.features.performance_optimizer import PerformanceOptimizer
 from Jarvis.features.enhanced_features import EnhancedErrorHandler, EnhancedVoiceCommands, ContextAwareProcessor
 
-
-engine = pyttsx3.init('sapi5')
-voices = engine.getProperty('voices')
-engine.setProperty('voices', voices[0].id)
+# Initialize TTS engine with platform detection
+try:
+    if os.name == 'nt':  # Windows
+        import pyttsx3
+        engine = pyttsx3.init('sapi5')
+        voices = engine.getProperty('voices')
+        engine.setProperty('voices', voices[0].id)
+        TTS_AVAILABLE = True
+    else:  # Linux/Unix
+        try:
+            import subprocess
+            subprocess.run(['espeak', '--version'], capture_output=True, check=True)
+            engine = None  # Will use espeak directly
+            TTS_AVAILABLE = True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("TTS not available on this platform")
+            engine = None
+            TTS_AVAILABLE = False
+except Exception as e:
+    print(f"TTS initialization failed: {e}")
+    engine = None
+    TTS_AVAILABLE = False
 
 class JarvisAssistant:
     def __init__(self):
