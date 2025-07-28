@@ -114,19 +114,31 @@ class AsyncVoiceRecognizer:
     
     def __init__(self):
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
         self.is_listening = False
         self.executor = ThreadPoolExecutor(max_workers=3)
         
-        # Optimize recognizer settings
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source)
+        # Only initialize microphone if available
+        try:
+            if not os.getenv('JARVIS_DEMO_MODE'):
+                self.microphone = sr.Microphone()
+                # Optimize recognizer settings
+                with self.microphone as source:
+                    self.recognizer.adjust_for_ambient_noise(source)
+                self.microphone_available = True
+            else:
+                self.microphone = None
+                self.microphone_available = False
+        except Exception as e:
+            print(f"Microphone not available: {e}")
+            self.microphone = None
+            self.microphone_available = False
         
-        self.recognizer.energy_threshold = 4000
-        self.recognizer.dynamic_energy_threshold = True
-        self.recognizer.pause_threshold = 0.8
-        self.recognizer.operation_timeout = 1
-        self.recognizer.phrase_threshold = 0.3
+        if self.microphone_available:
+            self.recognizer.energy_threshold = 4000
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.pause_threshold = 0.8
+            self.recognizer.operation_timeout = 1
+            self.recognizer.phrase_threshold = 0.3
     
     async def listen_continuously(self, callback=None):
         """Listen continuously for voice input"""
