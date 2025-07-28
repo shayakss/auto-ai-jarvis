@@ -71,13 +71,28 @@ class LanguageSupport:
         
         # Initialize TTS engine (gracefully handle headless environments)
         try:
-            self.tts_engine = pyttsx3.init()
-            self.setup_tts_for_language(self.current_language)
-            self.tts_available = True
+            # Check if on Windows
+            if os.name == 'nt':
+                self.tts_engine = pyttsx3.init()
+                self.setup_tts_for_language(self.current_language)
+                self.tts_available = True
+            else:
+                # On Linux/Unix systems, use espeak if available
+                try:
+                    subprocess.run(['espeak', '--version'], capture_output=True, check=True)
+                    self.tts_engine = None  # We'll use espeak directly
+                    self.tts_available = True
+                    self.use_espeak = True
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    print("TTS not available on this system (neither Windows SAPI nor espeak found)")
+                    self.tts_engine = None
+                    self.tts_available = False
+                    self.use_espeak = False
         except Exception as e:
-            print(f"TTS initialization failed (headless environment?): {e}")
+            print(f"TTS initialization failed: {e}")
             self.tts_engine = None
             self.tts_available = False
+            self.use_espeak = False
     
     def load_language_templates(self):
         """Load language-specific response templates"""
