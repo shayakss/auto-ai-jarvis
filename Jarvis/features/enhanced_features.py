@@ -17,9 +17,24 @@ import psutil
 from PIL import Image
 import cv2
 import numpy as np
-import pyautogui
 import speech_recognition as sr
 from googletrans import Translator
+
+# Only import pyautogui if display is available
+try:
+    import pyautogui
+    PYAUTOGUI_AVAILABLE = True
+except Exception as e:
+    print(f"PyAutoGUI not available (headless environment): {e}")
+    PYAUTOGUI_AVAILABLE = False
+    # Mock pyautogui for headless environments
+    class MockPyAutoGUI:
+        def press(self, key): print(f"Mock key press: {key}")
+        def hotkey(self, *keys): print(f"Mock hotkey: {keys}")
+        def screenshot(self): print("Mock screenshot"); return None
+        def keyDown(self, key): print(f"Mock key down: {key}")
+        def keyUp(self, key): print(f"Mock key up: {key}")
+    pyautogui = MockPyAutoGUI()
 
 class EnhancedErrorHandler:
     """Enhanced error handling with user-friendly messages"""
