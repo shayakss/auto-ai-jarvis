@@ -210,6 +210,10 @@ class LanguageSupport:
     def speak(self, text, language=None):
         """Speak text in the specified language"""
         try:
+            if not self.tts_available:
+                print(f"🔊 TTS: {text}")
+                return
+            
             if language and language != self.current_language:
                 self.setup_tts_for_language(language)
             
@@ -227,6 +231,11 @@ class LanguageSupport:
     def listen(self, language_code=None):
         """Listen for voice input in specified language"""
         try:
+            # In headless environments, simulate voice input
+            if os.getenv('DISPLAY') is None:
+                print("🎤 Voice input simulation (headless environment)")
+                return None
+            
             r = sr.Recognizer()
             lang_code = language_code or self.current_language
             sr_lang = self.sr_language_codes.get(lang_code, 'en-US')
