@@ -175,30 +175,31 @@ class LanguageSupport:
             
             # Find appropriate voice
             selected_voice = None
-            for voice in voices:
-                voice_name = voice.name.lower()
-                voice_lang = voice.languages[0].lower() if voice.languages else ""
-                
-                for preferred in preferred_voices:
-                    if preferred in voice_name or preferred in voice_lang:
-                        selected_voice = voice
+            if voices:
+                for voice in voices:
+                    voice_name = voice.name.lower()
+                    voice_lang = voice.languages[0].lower() if voice.languages else ""
+                    
+                    for preferred in preferred_voices:
+                        if preferred in voice_name or preferred in voice_lang:
+                            selected_voice = voice
+                            break
+                    
+                    if selected_voice:
                         break
                 
                 if selected_voice:
-                    break
-            
-            if selected_voice:
-                self.tts_engine.setProperty('voice', selected_voice.id)
-            else:
-                # Use default voice if no specific language voice found
-                self.tts_engine.setProperty('voice', voices[0].id)
+                    self.tts_engine.setProperty('voice', selected_voice.id)
+                elif voices:
+                    # Use default voice if no specific language voice found
+                    self.tts_engine.setProperty('voice', voices[0].id)
             
             # Set speech rate and volume
             self.tts_engine.setProperty('rate', 175)
             self.tts_engine.setProperty('volume', 0.9)
             
         except Exception as e:
-            print(f"TTS setup error: {e}")
+            print(f"TTS setup error (this may be normal in headless environments): {e}")
     
     def speak(self, text, language=None):
         """Speak text in the specified language"""
@@ -206,10 +207,16 @@ class LanguageSupport:
             if language and language != self.current_language:
                 self.setup_tts_for_language(language)
             
+            # In headless environments, just print instead of speaking
+            if os.getenv('DISPLAY') is None:
+                print(f"🔊 TTS: {text}")
+                return
+            
             self.tts_engine.say(text)
             self.tts_engine.runAndWait()
         except Exception as e:
-            print(f"Speech error: {e}")
+            print(f"Speech error (printing instead): {text}")
+            print(f"   Error details: {e}")
     
     def listen(self, language_code=None):
         """Listen for voice input in specified language"""
