@@ -68,9 +68,15 @@ class LanguageSupport:
         # Load language templates
         self.templates = self.load_language_templates()
         
-        # Initialize TTS engine
-        self.tts_engine = pyttsx3.init()
-        self.setup_tts_for_language(self.current_language)
+        # Initialize TTS engine (gracefully handle headless environments)
+        try:
+            self.tts_engine = pyttsx3.init()
+            self.setup_tts_for_language(self.current_language)
+            self.tts_available = True
+        except Exception as e:
+            print(f"TTS initialization failed (headless environment?): {e}")
+            self.tts_engine = None
+            self.tts_available = False
     
     def load_language_templates(self):
         """Load language-specific response templates"""
