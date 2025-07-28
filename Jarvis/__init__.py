@@ -86,18 +86,17 @@ class JarvisAssistant:
 
     def tts(self, text):
         """
-        Convert any text to speech
+        Enhanced text-to-speech with multi-language support
         :param text: text(String)
-        :return: True/False (Play sound if True otherwise write exception to log and return  False)
+        :return: True/False (Play sound if True otherwise write exception to log and return False)
         """
         try:
-            engine.say(text)
-            engine.runAndWait()
-            engine.setProperty('rate', 175)
+            # Use language-specific TTS
+            self.language_support.speak(text)
             return True
-        except:
-            t = "Sorry I couldn't understand and handle this input"
-            print(t)
+        except Exception as e:
+            error_msg = self.error_handler.handle_error('system_error', e)
+            print(error_msg)
             return False
 
     def tell_me_date(self):
