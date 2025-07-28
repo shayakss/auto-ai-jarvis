@@ -1,5 +1,9 @@
 import speech_recognition as sr
 import pyttsx3
+import asyncio
+import threading
+import time
+from datetime import datetime
 
 from Jarvis.features import date_time
 from Jarvis.features import launch_app
@@ -14,6 +18,11 @@ from Jarvis.features import note
 from Jarvis.features import system_stats
 from Jarvis.features import loc
 
+# Import new enhanced features
+from Jarvis.features.language_support import LanguageSupport
+from Jarvis.features.performance_optimizer import PerformanceOptimizer
+from Jarvis.features.enhanced_features import EnhancedErrorHandler, EnhancedVoiceCommands, ContextAwareProcessor
+
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
@@ -21,7 +30,23 @@ engine.setProperty('voices', voices[0].id)
 
 class JarvisAssistant:
     def __init__(self):
-        pass
+        # Initialize enhanced features
+        self.language_support = LanguageSupport()
+        self.performance_optimizer = PerformanceOptimizer()
+        self.error_handler = EnhancedErrorHandler(self.language_support)
+        self.enhanced_commands = EnhancedVoiceCommands(self.error_handler)
+        self.context_processor = ContextAwareProcessor()
+        
+        # Initialize performance optimization
+        self.performance_optimizer.optimize_startup()
+        
+        # Performance metrics
+        self.command_count = 0
+        self.session_start_time = datetime.now()
+        
+        print("🚀 JARVIS Enhanced Assistant Initialized!")
+        print(f"🌐 Language: {self.language_support.supported_languages[self.language_support.current_language]}")
+        print("✨ All systems ready!")
 
     def mic_input(self):
         """
