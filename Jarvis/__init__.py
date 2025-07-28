@@ -201,3 +201,130 @@ class JarvisAssistant:
     def my_location(self):
         city, state, country = loc.my_location()
         return city, state, country
+    
+    # =================== NEW ENHANCED FEATURES ===================
+    
+    def process_enhanced_command(self, command):
+        """
+        Process commands using enhanced features
+        """
+        try:
+            # Find matching enhanced command
+            category, function = self.enhanced_commands.find_matching_command(command)
+            
+            if function:
+                print(f"🎯 Processing {category} command: {command}")
+                response = function(command)
+                
+                # Add to conversation history
+                self.context_processor.add_to_history(command, response)
+                
+                return response
+            
+            # If no enhanced command found, return None to use traditional processing
+            return None
+            
+        except Exception as e:
+            return self.error_handler.handle_error('command_error', e)
+    
+    def get_help(self):
+        """Get comprehensive help text"""
+        return self.enhanced_commands.get_help_text()
+    
+    def change_language(self, language_code):
+        """Change the assistant's language"""
+        if self.language_support.set_language(language_code):
+            lang_name = self.language_support.supported_languages[language_code]
+            return self.language_support.get_template('language_changed', language=lang_name)
+        return "Language not supported"
+    
+    def get_performance_stats(self):
+        """Get performance statistics"""
+        session_duration = datetime.now() - self.session_start_time
+        
+        stats = {
+            'session_duration': str(session_duration),
+            'commands_processed': self.command_count,
+            'current_language': self.language_support.get_current_language_info(),
+            'performance_report': self.performance_optimizer.get_performance_report(),
+            'error_stats': self.error_handler.get_error_stats()
+        }
+        
+        return stats
+    
+    def get_context_suggestions(self, current_input=""):
+        """Get context-aware suggestions"""
+        return self.context_processor.get_context_suggestions(current_input)
+    
+    def cleanup(self):
+        """Clean up resources when shutting down"""
+        self.performance_optimizer.cleanup()
+        print("👋 JARVIS Enhanced Assistant shutting down gracefully...")
+    
+    def process_command_intelligently(self, command):
+        """
+        Main intelligent command processing with all enhancements
+        """
+        if not command:
+            return self.error_handler.handle_error('voice_error')
+        
+        command = command.lower().strip()
+        
+        # Check for help request
+        if command in ['help', 'what can you do', 'commands']:
+            return self.get_help()
+        
+        # Check for enhanced commands first
+        enhanced_response = self.process_enhanced_command(command)
+        if enhanced_response:
+            return enhanced_response
+        
+        # Traditional command processing with enhanced error handling
+        try:
+            # Date command
+            if 'date' in command:
+                result = self.tell_me_date()
+                if self.language_support.current_language != 'en':
+                    result = self.language_support.translate_text(result, self.language_support.current_language)
+                return result
+            
+            # Time command
+            elif 'time' in command:
+                result = self.tell_time()
+                template = self.language_support.get_template('time_response', time=result)
+                return template
+            
+            # Weather command
+            elif 'weather' in command:
+                # Extract city from command
+                words = command.split()
+                city = words[-1] if len(words) > 1 else "London"
+                return self.weather(city)
+            
+            # Wikipedia command
+            elif 'tell me about' in command:
+                topic = command.replace('tell me about', '').strip()
+                result = self.tell_me(topic)
+                if result and self.language_support.current_language != 'en':
+                    result = self.language_support.translate_text(result, self.language_support.current_language)
+                return result or self.language_support.get_template('not_found')
+            
+            # News command
+            elif any(word in command for word in ['news', 'headlines', 'buzzing']):
+                news_result = self.news()
+                if news_result:
+                    headlines = [article['title'] for article in news_result[:3]]  # Top 3 headlines
+                    result = "Top headlines: " + ". ".join(headlines)
+                    if self.language_support.current_language != 'en':
+                        result = self.language_support.translate_text(result, self.language_support.current_language)
+                    return result
+                return self.error_handler.handle_error('api_error')
+            
+            # Default response for unrecognized commands
+            else:
+                return self.error_handler.handle_error('command_error')
+                
+        except Exception as e:
+            return self.error_handler.handle_error('system_error', e, 'command_processing')
+    
+    # =================== LEGACY METHODS (UPDATED) ===================
