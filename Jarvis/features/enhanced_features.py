@@ -208,6 +208,9 @@ class EnhancedVoiceCommands:
         try:
             command_lower = command.lower()
             
+            if not PYAUTOGUI_AVAILABLE:
+                return "System control features not available in headless environment"
+            
             if 'shutdown' in command_lower:
                 return self.confirm_action("Are you sure you want to shutdown?", 
                                          lambda: os.system("shutdown /s /t 1"))
@@ -239,6 +242,9 @@ class EnhancedVoiceCommands:
         """Handle media control commands"""
         try:
             command_lower = command.lower()
+            
+            if not PYAUTOGUI_AVAILABLE:
+                return "Media control features not available in headless environment"
             
             if 'play' in command_lower:
                 pyautogui.press('playpause')
