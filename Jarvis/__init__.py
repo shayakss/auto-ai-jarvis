@@ -50,28 +50,38 @@ class JarvisAssistant:
 
     def mic_input(self):
         """
-        Fetch input from mic
+        Enhanced voice input with multi-language support and better error handling
         return: user's voice input as text if true, false if fail
         """
         try:
-            r = sr.Recognizer()
-            # r.pause_threshold = 1
-            # r.adjust_for_ambient_noise(source, duration=1)
-            with sr.Microphone() as source:
-                print("Listening....")
-                r.energy_threshold = 4000
-                audio = r.listen(source)
-            try:
-                print("Recognizing...")
-                command = r.recognize_google(audio, language='en-in').lower()
-                print(f'You said: {command}')
-            except:
-                print('Please try again')
-                command = self.mic_input()
-            return command
+            # Use the enhanced voice recognition from language support
+            command = self.language_support.listen()
+            
+            if command:
+                self.command_count += 1
+                print(f"🎤 Command #{self.command_count}: {command}")
+                
+                # Check for language change commands first
+                lang_change_response = self.language_support.process_language_command(command)
+                if lang_change_response:
+                    self.tts(lang_change_response)
+                    return command
+                
+                # Process with context awareness
+                context_response = self.context_processor.process_with_context(command)
+                if context_response:
+                    return context_response
+                
+                return command
+            else:
+                error_msg = self.error_handler.handle_error('voice_error')
+                self.tts(error_msg)
+                return False
+                
         except Exception as e:
-            print(e)
-            return  False
+            error_msg = self.error_handler.handle_error('voice_error', e)
+            self.tts(error_msg)
+            return False
 
 
     def tts(self, text):
