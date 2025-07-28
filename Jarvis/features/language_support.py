@@ -230,16 +230,45 @@ class LanguageSupport:
                 print(f"🔊 TTS: {text}")
                 return
             
-            if language and language != self.current_language:
-                self.setup_tts_for_language(language)
+            if hasattr(self, 'use_espeak') and self.use_espeak:
+                # Use espeak for Linux systems
+                try:
+                    lang_code = language or self.current_language
+                    espeak_lang = {
+                        'en': 'en',
+                        'hi': 'hi',
+                        'ur': 'ur',
+                        'ar': 'ar',
+                        'fr': 'fr',
+                        'es': 'es',
+                        'de': 'de',
+                        'it': 'it',
+                        'ja': 'ja',
+                        'ko': 'ko',
+                        'zh': 'zh',
+                        'ru': 'ru',
+                        'pt': 'pt',
+                        'tr': 'tr'
+                    }.get(lang_code, 'en')
+                    
+                    subprocess.run(['espeak', '-v', espeak_lang, text], 
+                                 capture_output=True, timeout=10)
+                    return
+                except Exception as e:
+                    print(f"Espeak error: {e}")
+                    print(f"🔊 TTS: {text}")
+                    return
             
-            # In headless environments, just print instead of speaking
-            if os.getenv('DISPLAY') is None:
+            # Use pyttsx3 for Windows
+            if self.tts_engine:
+                if language and language != self.current_language:
+                    self.setup_tts_for_language(language)
+                
+                self.tts_engine.say(text)
+                self.tts_engine.runAndWait()
+            else:
                 print(f"🔊 TTS: {text}")
-                return
-            
-            self.tts_engine.say(text)
-            self.tts_engine.runAndWait()
+                
         except Exception as e:
             print(f"Speech error (printing instead): {text}")
             print(f"   Error details: {e}")
