@@ -5,6 +5,7 @@ Supports English, Hindi, Urdu, and other languages
 
 import json
 import os
+import subprocess
 from googletrans import Translator
 from langdetect import detect
 import pyttsx3
