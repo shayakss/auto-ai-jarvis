@@ -276,6 +276,10 @@ class LanguageSupport:
     def listen(self, language_code=None):
         """Listen for voice input in specified language"""
         try:
+            # In demo mode, return None to simulate no voice input
+            if os.getenv('JARVIS_DEMO_MODE'):
+                return None
+            
             # In headless environments, simulate voice input
             if os.getenv('DISPLAY') is None:
                 print("🎤 Voice input simulation (headless environment)")
