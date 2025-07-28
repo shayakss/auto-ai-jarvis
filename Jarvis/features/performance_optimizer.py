@@ -142,6 +142,10 @@ class AsyncVoiceRecognizer:
     
     async def listen_continuously(self, callback=None):
         """Listen continuously for voice input"""
+        if not self.microphone_available:
+            print("🎤 Microphone not available - continuous listening disabled")
+            return None
+            
         self.is_listening = True
         
         def listen_worker():
@@ -172,6 +176,9 @@ class AsyncVoiceRecognizer:
     
     def _process_audio(self, audio):
         """Process audio data"""
+        if not self.microphone_available:
+            return None
+            
         try:
             # Use Google's speech recognition
             result = self.recognizer.recognize_google(audio, language='en-US')
@@ -184,6 +191,10 @@ class AsyncVoiceRecognizer:
     
     async def listen_once(self, language='en-US', timeout=5):
         """Listen for a single command"""
+        if not self.microphone_available:
+            print("🎤 Microphone not available - voice input disabled")
+            return None
+            
         try:
             with self.microphone as source:
                 audio = self.recognizer.listen(source, timeout=timeout, phrase_time_limit=5)
